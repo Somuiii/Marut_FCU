@@ -79,6 +79,30 @@ The Quad FCU development addresses multirotor-specific challenges.
 * **Quad Control Surface Algorithms**: Algorithms converting desired maneuvers into differential thrust commands for each motor, coordinating with PID stabilization for stable and controllable flight. <- We are here right now
 * **Real-Time PID tuning support**:Add optionalsupport for realtime P,I and D manipulation using the various control knobs present on RC transmitters with appropriate channel mapping.
 * **Acro/Sport, Auto-level and Altitude hold support**:Develop complex control algorithms for the support of these 3 mdoes using various concepts like 3 input cascaded PID, Complimentary and Kalman filters. <- We are here right now
+
+<img width="1129" height="347" alt="image" src="https://github.com/user-attachments/assets/9224717d-4b4a-41bb-8fdc-dcd12f7c583a" />
+
+### Hybrid VTOL Development Goals
+
+The Hybrid VTOL development within Marut focuses on enabling safe, stable, and repeatable operation of **multirotor–fixed-wing hybrid aircraft**, with particular emphasis on hover stability, transition robustness, and control authority management across flight regimes.
+
+The primary development goals are outlined below:
+
+- **Stable Multirotor Hover Baseline**  
+  Establish a reliable multirotor control foundation with tightly tuned attitude and rate controllers. This ensures predictable behavior during vertical takeoff, landing, and low-speed operations, which are critical for hybrid VTOL platforms.
+
+- **Robust Attitude Estimation Across Regimes**  
+  Maintain accurate roll, pitch, and yaw estimation during high-vibration hover, low-airspeed transition, and forward-flight conditions using IMU sensor fusion and adaptive filtering techniques.
+
+- **Smooth Multirotor–Fixed-Wing Transition Handling**  
+  Design control logic to manage gradual authority handoff between multirotor thrust-based control and fixed-wing aerodynamic control surfaces, minimizing transient instability during transition phases.
+
+- **Mode-Safe Transition and Recovery**  
+  Implement safeguards to allow seamless reversion to multirotor stabilization in the event of transition failure, loss of airspeed, or pilot intervention, prioritizing vehicle recoverability and safety.
+
+- **Progressive Expansion Toward Fixed-Wing Cruise Control**  
+  Lay the groundwork for future fixed-wing cruise stabilization and navigation support by maintaining clean separation between hover, transition, and forward-flight control layers.
+
   
 
 
