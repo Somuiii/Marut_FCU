@@ -1,11 +1,39 @@
 
 <img width="2048" height="588" alt="new_log" src="https://github.com/user-attachments/assets/ab09742d-f94e-4978-b8e5-fd3087f4f949" />
 
-# Marut - STM32 F4XX Blackpill Based Fixed Wing + Multirotor FCU
+# Marut  
+### STM32 F4XX Blackpill Based Tri-Mode Flight Control Unit
 
-**Marut** is an advanced Flight Control Unit (FCU) being developed at **AISSMS IOIT**. It combines cutting-edge control algorithms, real-time telemetry, autonomous navigation for both fixed-wing and quadrotor aircraft, and supports FPV OSD through Mission Planner. Designed to run on a compact STM32 F4XX Blackpill board costing around 300 INR, Marut has the potential to become one of the most cost-effective FCUs on the market without compromising on performance, precision, or reliability.
+**Marut** is an indigenous Flight Control Unit (FCU) currently under development at **AISSMS IOIT**. Built around the STM32 F4XX Blackpill platform, it is designed as a **tri-mode flight controller**, supporting **fixed-wing aircraft, multirotors, and VTOL configurations** within a single unified control framework.
 
-This project is a collaborative initiative between **Team Aeroguardians** of the IoIT Drone Club and the **Catalyst Committee** to develop an indigenous Flight Control Unit (FCU). The aim is to advance drone and UAV development within the college by providing a **custom-designed, locally developed FCU right from the very core**, offering high functionality at minimal cost.
+Despite running on a compact microcontroller board costing approximately **₹300**, Marut is engineered to deliver reliable performance and precise attitude control without unnecessary complexity. The FCU focuses on real-time sensor fusion, stable closed-loop control, telemetry support, and FPV OSD compatibility through **Mission Planner**, making it suitable for both experimental and practical airframes.
+
+This project is a collaborative effort between **Team Aeroguardians** of the IoIT Drone Club and the **Catalyst Committee**, with the goal of developing a fully custom, locally designed flight controller from the ground up. Marut is intended to strengthen in-house UAV research and development by providing a transparent, low-cost FCU platform that supports multiple airframe types without reliance on expensive commercial solutions.
+
+By prioritizing **tri-mode flexibility**, affordability, and openness, Marut lowers the barrier to advanced flight-control experimentation and enables a deeper understanding of control systems at both the firmware and hardware levels.
+
+---
+
+## Key Features
+
+- **Tri-mode support**  
+  - Fixed-wing  
+  - Multirotor  
+  - VTOL (hybrid configurations)
+
+- Low-cost hardware using **STM32 F4XX Blackpill**
+- Real-time IMU sensor fusion
+- Stable closed-loop attitude control
+- Telemetry support
+- FPV OSD integration via Mission Planner
+- Fully **indigenous** and **custom-built** FCU design
+- Suitable for academic research, testing, and prototyping
+
+---
+
+## Project Background
+
+Marut is developed as part of a student-led initiative at **AISSMS IOIT**, driven by the need for an affordable yet capable flight controller that can adapt to multiple airframe types while remaining open, understandable, and modifiable at every level.
 
 ## Team
 
