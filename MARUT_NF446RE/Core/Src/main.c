@@ -212,6 +212,9 @@ int button_counter;
 int mode_flag = 0;
 int temp_mode_flag = 0;
 
+int elevon_left = 0;
+int elevon_right = 0;
+
 float calibration_const_global_roll_accel = 0;
 float calibration_const_global_pitch_accel = 0;
 
@@ -1759,6 +1762,137 @@ void fw_mode(void *argument) {
 	/* USER CODE BEGIN fw_mode */
 	/* Infinite loop */
 	for (;;) {
+		if (mode_flag == 0) {
+			osSemaphoreAcquire(timer_semHandle, osWaitForever);
+
+							if (display_channels[6] > 1800){
+								/*   ELEVON
+								 *
+								 * FOR COMPLEMENTARY FILTER
+								 *
+								 * const float alpha = 0.98f;
+								gx = (mpu_gyro_read(0) - calibration_const_global_gx);
+								gy = (mpu_gyro_read(1) - calibration_const_global_gy);
+								gz = (mpu_gyro_read(2) - calibration_const_global_gz);
+
+								roll_acc=( mpu_roll_pitch_read_accel(0)-calibration_const_global_roll_accel) ;
+								pitch_acc=(mpu_roll_pitch_read_accel(1) -calibration_const_global_pitch_accel) ;
+
+								roll  = alpha * (roll  + gyro_roll_rate  * dt)
+								      + (1.0f - alpha) * acc_roll;
+
+								pitch = alpha * (pitch + gyro_pitch_rate * dt)
+								      + (1.0f - alpha) * acc_pitch; */
+
+								// Kalman Filter :
+								mpu_get_kalman_angles(&kalman_roll, &kalman_pitch);
+
+								DesiredAngleRoll  = 0.05f * (display_channels[0] - 1500);
+								DesiredAnglePitch = 0.07f * (display_channels[1] - 1500);
+
+
+								ErrorAngleRoll = DesiredAngleRoll - kalman_roll;
+								ErrorAnglePitch = DesiredAnglePitch - kalman_pitch;
+
+								/*pid_equation(ErrorAngleRoll, PAngleRoll, IAngleRoll,
+																DAngleRoll, PrevErrorAngleRoll,
+																PrevItermAngleRoll);
+								DesiredRateRoll = PIDReturn[0];
+								PrevErrorAngleRoll = PIDReturn[1];
+								PrevItermAngleRoll = PIDReturn[2];
+
+								pid_equation(ErrorAnglePitch, PAnglePitch, IAnglePitch,
+											DAnglePitch, PrevErrorAnglePitch,
+											PrevItermAnglePitch);
+
+								DesiredRatePitch = PIDReturn[0];
+								PrevErrorAnglePitch = PIDReturn[1];
+								PrevItermAnglePitch = PIDReturn[2]; */
+
+								DesiredRateRoll  = PAngleRoll  * ErrorAngleRoll;
+								DesiredRatePitch = PAnglePitch * ErrorAnglePitch;
+
+								if(DesiredRateRoll > 200.0f){
+									DesiredRateRoll = 199.9f;
+																}
+								if(DesiredRateRoll < -200.0f){
+										DesiredRateRoll = -199.9f;
+									}
+
+								if(DesiredRatePitch > 200.0f){
+											DesiredRatePitch = 199.9f;
+								}
+								if(DesiredRatePitch < -200.0f){
+										DesiredRatePitch = -199.9f;
+							}
+
+
+
+								Gx = mpu_gyro_read(0) - calibration_const_global_gx;
+								Gy = mpu_gyro_read(1) - calibration_const_global_gy;
+
+								ErrorRateRoll  = DesiredRateRoll  - Gx;
+								ErrorRatePitch = DesiredRatePitch - Gy;
+
+								pid_equation(ErrorRateRoll,
+								             PRateRoll, 0.0f, DRateRoll,
+								             PrevErrorRateRoll, PrevItermRateRoll);
+
+								InputRoll = PIDReturn[0];
+								PrevErrorRateRoll  = PIDReturn[1];
+								PrevItermRateRoll  = PIDReturn[2];
+
+								pid_equation(ErrorRatePitch,
+								             PRatePitch, 0.0f, DRatePitch,
+								             PrevErrorRatePitch, PrevItermRatePitch);
+
+								InputPitch = PIDReturn[0];
+								PrevErrorRatePitch  = PIDReturn[1];
+								PrevItermRatePitch  = PIDReturn[2];
+
+
+								//elevator = 1500 + InputPitch;
+
+
+
+
+								/*if(elevator > 2000){
+									elevator = 1999;
+								}
+
+								if(elevator < 1000){
+									elevator = 1002;
+								} */
+
+								//set_raw_ccr(aileron,  AILERON_CH);
+
+
+
+
+								// ELEVON MIXING: pitch + roll
+								elevon_left  = 1500 + (EL_L_DIR * (InputPitch + InputRoll));
+								elevon_right = 1500 + (EL_R_DIR * (InputPitch - InputRoll));
+
+								// Clamp
+								if (elevon_left > 2000)  elevon_left = 1999;
+								if (elevon_left < 1000)  elevon_left = 1001;
+
+								if (elevon_right > 2000) elevon_right = 1999;
+								if (elevon_right < 1000) elevon_right = 1001;
+
+								// Output
+								set_raw_ccr(elevon_left,  2);
+								set_raw_ccr(elevon_right, 3);
+								//set_raw_ccr(elevator,ELEVATOR_CH);
+								throttle = display_channels[2];
+								set_raw_ccr(throttle, 1);
+
+
+
+						
+			}
+
+		}
 		osDelay(1);
 	}
 	/* USER CODE END fw_mode */
