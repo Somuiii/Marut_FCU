@@ -1893,7 +1893,7 @@ void fw_mode(void *argument) {
 			}
 
 		
-		osDelay(1);
+		
 	}
 	/* USER CODE END fw_mode */
 }
