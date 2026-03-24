@@ -101,7 +101,7 @@ osStaticThreadDef_t QuadTaskControlBlock;
 const osThreadAttr_t QuadTask_attributes = { .name = "QuadTask", .cb_mem =
 		&QuadTaskControlBlock, .cb_size = sizeof(QuadTaskControlBlock),
 		.stack_mem = &QuadTaskBuffer[0], .stack_size = sizeof(QuadTaskBuffer),
-		.priority = (osPriority_t) osPriorityRealtime, };
+		.priority = (osPriority_t) osPriorityHigh, };
 /* Definitions for TelemetryTask */
 osThreadId_t TelemetryTaskHandle;
 uint32_t TelemetryTaskBuffer[2024];
@@ -161,8 +161,8 @@ extern uint32_t last_led_toggle;
 extern char unit;
 extern uint32_t gps_send_counter;
 
-volatile uint16_t ppm_live_channels[8];
-volatile uint16_t ppm_ready_channels[8];
+volatile uint16_t ppm_live_channels[10];
+volatile uint16_t ppm_ready_channels[10];
 uint16_t display_channels[8];
 volatile uint8_t pulse = 1;
 
@@ -311,6 +311,7 @@ int task_2_running = 0;
 int task_3_running = 0;
 int task_4_running = 0;
 int task_5_running = 0;
+int itr_running = 100;
 
 uint32_t t1, t2, dt_n;
 int tim_flag = 0;
@@ -352,8 +353,6 @@ void quad_mode(void *argument);
 void telemetry_task(void *argument);
 void fw_mode(void *argument);
 void vtol_task(void *argument);
-float range_converter(uint16_t OldValue, uint16_t OldMin, uint16_t OldMax,
-		float NewMin, float NewMax);
 
 /* USER CODE BEGIN PFP */
 
@@ -372,6 +371,8 @@ PUTCHAR_PROTOTYPE {
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 
 	if (htim->Instance == TIM4 && htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
+
+		itr_running = 1;
 		uint32_t current_capture = HAL_TIM_ReadCapturedValue(htim,
 		TIM_CHANNEL_1);
 		uint16_t pulse_width;
@@ -439,6 +440,8 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 			}
 		}
 		last_capture = current_capture;
+
+		itr_running = 0;
 	}
 
 }
@@ -473,6 +476,21 @@ uint32_t mapRCtoMotor(uint16_t rcValue) {
 
 float negative_range(uint32_t motorValue) {
 	return ((float) motorValue - 90.0f) / 90.0f;
+}
+
+float range_converter(uint16_t OldValue, uint16_t OldMin, uint16_t OldMax,
+		float NewMin, float NewMax) {
+	if (OldMax == OldMin) {
+		return NewMin;  // avoid division by zero
+	}
+
+	float OldRange = (float) (OldMax - OldMin);
+	float NewRange = (NewMax - NewMin);
+
+	float NewValue = (((float) (OldValue - OldMin) * NewRange) / OldRange)
+			+ NewMin;
+
+	return NewValue;
 }
 
 void setServoAngle(uint32_t angle, int channel) // obsolete not recommended for active use - aryan
@@ -697,27 +715,26 @@ int main(void) {
 	HAL_UART_Transmit(&huart1, (uint8_t*) "Starting System Init...\n", 24,
 			0xFFFF);
 
-	mpu_init();
-	bmp_i2c_setup();
+	/*	mpu_init();
+	 bmp_i2c_setup();*/
 
 	//HAL_Delay(3000);
 	//printf("Init ok bmp/n");
+	/*	calibration_const_global_roll_accel = mpu_roll_pitch_calibration_accel(0);
+	 calibration_const_global_pitch_accel = mpu_roll_pitch_calibration_accel(1);
 
-	calibration_const_global_roll_accel = mpu_roll_pitch_calibration_accel(0);
-	calibration_const_global_pitch_accel = mpu_roll_pitch_calibration_accel(1);
-
-	calibration_const_global_gx = mpu_gyro_calibration(0);
-	calibration_const_global_gy = mpu_gyro_calibration(1);
-	calibration_const_global_gz = mpu_gyro_calibration(2);
+	 calibration_const_global_gx = mpu_gyro_calibration(0);
+	 calibration_const_global_gy = mpu_gyro_calibration(1);
+	 calibration_const_global_gz = mpu_gyro_calibration(2);*/
 
 	mode_flag = 0;
 
 	HAL_UART_Transmit(&huart1, (uint8_t*) "Calibration completed\n", 24,
 			0xFFFF);
 
-	HAL_TIM_PWM_Start_IT(&htim4, TIM_CHANNEL_1);
-	HAL_TIM_Base_Init(&htim10);
-	HAL_TIM_Base_Start_IT(&htim10);
+	//HAL_TIM_IC_Start_IT(&htim4, TIM_CHANNEL_1);
+	//HAL_TIM_Base_Start(&htim10);
+
 
 	/* USER CODE END 2 */
 
@@ -749,9 +766,7 @@ int main(void) {
 	ArmDisarmHandle = osThreadNew(arm_disarm, NULL, &ArmDisarm_attributes);
 
 	/* creation of ModeHandler */
-	ModeHandlerHandle = osThreadNew(mode_handler, NULL,
-			&ModeHandler_attributes);
-
+	//ModeHandlerHandle = osThreadNew(mode_handler, NULL, &ModeHandler_attributes);
 	/* creation of Debounce_Handle */
 	Debounce_HandleHandle = osThreadNew(debounce_task, NULL,
 			&Debounce_Handle_attributes);
@@ -764,11 +779,9 @@ int main(void) {
 			&TelemetryTask_attributes);
 
 	/* creation of FixedWingTask */
-	FixedWingTaskHandle = osThreadNew(fw_mode, NULL, &FixedWingTask_attributes);
-
+	//FixedWingTaskHandle = osThreadNew(fw_mode, NULL, &FixedWingTask_attributes);
 	/* creation of VtolMode */
-	VtolModeHandle = osThreadNew(vtol_task, NULL, &VtolMode_attributes);
-
+	//VtolModeHandle = osThreadNew(vtol_task, NULL, &VtolMode_attributes);
 	/* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
 	/* USER CODE END RTOS_THREADS */
@@ -1287,6 +1300,13 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+	GPIO_InitStruct.Pin = GPIO_PIN_6; // PB6
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
+
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	/* USER CODE BEGIN MX_GPIO_Init_2 */
 
 	/* USER CODE END MX_GPIO_Init_2 */
@@ -1311,9 +1331,8 @@ void arm_disarm(void *argument) {
 	/* Infinite loop */
 	for (;;) {
 
-		if (display_channels[4] > 1900 && ioce != 1 &&
-		    display_channels[2] < 1100)
-		{
+		if (display_channels[4] > 1900 && ioce != 1
+				&& display_channels[2] < 1100) {
 			joce = 0;
 
 			arm_flag = 1;
@@ -1367,6 +1386,7 @@ void arm_disarm(void *argument) {
 /* USER CODE END Header_mode_handler */
 void mode_handler(void *argument) {
 	/* USER CODE BEGIN mode_handler */
+
 	int ioc = 0;
 	int joc = 0;
 	int coc = 0;
@@ -1456,14 +1476,31 @@ void quad_mode(void *argument) {
 	static int16_t pitch_offset = 0;
 	static int sample_limit = 0;
 	HAL_TIM_Base_Start(&htim9);
+	HAL_TIM_Base_Start_IT(&htim10);
 
 	/* Infinite loop */
 
 	for (;;) {
 
+		task_2_running = 1;
 		osSemaphoreAcquire(timer_semHandle, osWaitForever);
+		task_2_running = 0;
+
+
+		now = TIM9->CNT;
+
+		if (now >= last)
+		    dt_n = now - last;
+		else
+		    dt_n = (65535 - last) + now;
+
+		last = now;
+
 
 		//motor_check();
+		memcpy(display_channels, (void*) ppm_ready_channels,
+				sizeof(ppm_ready_channels));
+		ppm_new_data_flag = 0;
 
 		if (sample_limit < 25) {
 
@@ -1698,9 +1735,8 @@ void quad_mode(void *argument) {
 		}
 
 		//for debugging on MCUViewer and For giving time exceeded warnings in mavlink
-		now = TIM9->CNT;
-		dt_n = now - last;
-		last = now;
+
+
 
 	}
 
@@ -1845,7 +1881,6 @@ void fw_mode(void *argument) {
 			InputThrottle = display_channels[2];
 			set_raw_ccr(InputThrottle, 6);
 
-
 		} else if (display_channels[7] < 1300) {
 
 			left_elevon = range_converter(display_channels[0], 1000, 2000, 5,
@@ -1878,21 +1913,6 @@ void vtol_task(void *argument) {
 		osDelay(1);
 	}
 	/* USER CODE END vtol_task */
-}
-
-float range_converter(uint16_t OldValue, uint16_t OldMin, uint16_t OldMax,
-		float NewMin, float NewMax) {
-	if (OldMax == OldMin) {
-		return NewMin;  // avoid division by zero
-	}
-
-	float OldRange = (float) (OldMax - OldMin);
-	float NewRange = (NewMax - NewMin);
-
-	float NewValue = (((float) (OldValue - OldMin) * NewRange) / OldRange)
-			+ NewMin;
-
-	return NewValue;
 }
 
 /**

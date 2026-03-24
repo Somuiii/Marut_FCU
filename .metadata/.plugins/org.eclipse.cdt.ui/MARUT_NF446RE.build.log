@@ -1,4 +1,4 @@
-00:37:13 **** Incremental Build of configuration Debug for project MARUT_NF446RE ****
+01:10:01 **** Incremental Build of configuration Debug for project MARUT_NF446RE ****
 make -j16 all 
 arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F446xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
 In file included from ../Core/Inc/mavlink/common/common.h:2903,
@@ -125,17 +125,26 @@ In file included from ../Core/Inc/mavlink/common/common.h:3024:
 ../Core/Inc/mavlink/common/./mavlink_msg_obstacle_distance.h:256:173: warning: taking address of packed member of 'struct __mavlink_obstacle_distance_t' may result in an unaligned pointer value [-Waddress-of-packed-member]
   256 |     return mavlink_msg_obstacle_distance_pack_status(system_id, component_id, _status, msg,  obstacle_distance->time_usec, obstacle_distance->sensor_type, obstacle_distance->distances, obstacle_distance->increment, obstacle_distance->min_distance, obstacle_distance->max_distance, obstacle_distance->increment_f, obstacle_distance->angle_offset, obstacle_distance->frame);
       |                                                                                                                                                            ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+../Core/Src/main.c: In function 'quad_mode':
+../Core/Src/main.c:1501:17: warning: 'memcpy' writing 20 bytes into a region of size 16 overflows the destination [-Wstringop-overflow=]
+ 1501 |                 memcpy(display_channels, (void*) ppm_ready_channels,
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 1502 |                                 sizeof(ppm_ready_channels));
+      |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c:166:10: note: destination object 'display_channels' of size 16
+  166 | uint16_t display_channels[8];
+      |          ^~~~~~~~~~~~~~~~
 arm-none-eabi-gcc -o "MARUT_NF446RE.elf" @"objects.list"   -mcpu=cortex-m4 -T"C:\Embedded stuff\Marut_workspace_stm32\MARUT_NF446RE\STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MARUT_NF446RE.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
 Finished building target: MARUT_NF446RE.elf
  
 arm-none-eabi-size  MARUT_NF446RE.elf 
 arm-none-eabi-objdump -h -S MARUT_NF446RE.elf  > "MARUT_NF446RE.list"
    text	   data	    bss	    dec	    hex	filename
-  86872	    636	 102028	 189536	  2e460	MARUT_NF446RE.elf
+  82320	    640	  84808	 167768	  28f58	MARUT_NF446RE.elf
 Finished building: default.size.stdout
  
 Finished building: MARUT_NF446RE.list
  
 
-00:37:21 Build Finished. 0 errors, 30 warnings. (took 8s.618ms)
+01:10:02 Build Finished. 0 errors, 31 warnings. (took 1s.748ms)
 

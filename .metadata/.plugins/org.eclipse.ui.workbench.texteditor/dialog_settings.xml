@@ -3,6 +3,9 @@
 	<item key="hasShownOverlayPopupBefore" value="true"/>
 	<item key="replaceBarOpen" value="false"/>
 	<list key="searchhistory">
+		<item value="mode_flag"/>
+		<item value="printf"/>
+		<item value="dt"/>
 		<item value="GNSS"/>
 		<item value="io"/>
 		<item value="send_pa"/>
