@@ -741,8 +741,6 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART6_UART_Init();
-
-
   /* USER CODE BEGIN 2 */
 	__HAL_RCC_SYSCFG_CLK_ENABLE(); // mx forgets to enable rcc syscfg, if exti itr not working add this always after code generation - aryan
 
@@ -764,14 +762,16 @@ int main(void)
 
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET); // onboard led on
 
-	HAL_TIM_IC_Start_IT(&htim4, TIM_CHANNEL_1);
+	HAL_UART_Transmit(&huart1, (uint8_t*) "Calibration completed\n", 24,
+			0xFFFF);
 
+	HAL_TIM_IC_Start_IT(&htim4, TIM_CHANNEL_1);
+	HAL_TIM_Base_Start(&htim10);
 
   /* USER CODE END 2 */
 
   /* Init scheduler */
   osKernelInitialize();
-
 
   /* USER CODE BEGIN RTOS_MUTEX */
 	/* add mutexes, ... */
@@ -787,7 +787,6 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_TIMERS */
 	/* start timers, add new ones, ... */
-  HAL_TIM_Base_Start_IT(&htim10);
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -805,18 +804,16 @@ int main(void)
   Debounce_HandleHandle = osThreadNew(debounce_task, NULL, &Debounce_Handle_attributes);
 
   /* creation of QuadTask */
-  //QuadTaskHandle = osThreadNew(quad_mode, NULL, &QuadTask_attributes);
+  QuadTaskHandle = osThreadNew(quad_mode, NULL, &QuadTask_attributes);
 
   /* creation of TelemetryTask */
   TelemetryTaskHandle = osThreadNew(telemetry_task, NULL, &TelemetryTask_attributes);
 
-
-
   /* creation of FixedWingTask */
-  //FixedWingTaskHandle = osThreadNew(fw_mode, NULL, &FixedWingTask_attributes);
+  FixedWingTaskHandle = osThreadNew(fw_mode, NULL, &FixedWingTask_attributes);
 
   /* creation of VtolMode */
-  //VtolModeHandle = osThreadNew(vtol_task, NULL, &VtolMode_attributes);
+  VtolModeHandle = osThreadNew(vtol_task, NULL, &VtolMode_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
 	/* add threads, ... */
@@ -1396,7 +1393,6 @@ void arm_disarm(void *argument)
 			__NOP();
 		}
 
-		osDelay(1);
 	}
   /* USER CODE END 5 */
 }
@@ -1956,11 +1952,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  if (htim->Instance == TIM10) {
-  		tim_flag = 1;
-  		osSemaphoreRelease(timer_semHandle);
 
-  	}
   /* USER CODE END Callback 1 */
 }
 

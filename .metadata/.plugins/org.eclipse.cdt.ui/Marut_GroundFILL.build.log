@@ -1,4 +1,4 @@
-23:30:56 **** Incremental Build of configuration Debug for project Marut_GroundFILL ****
+23:30:08 **** Incremental Build of configuration Debug for project Marut_GroundFILL ****
 make -j16 all 
 arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F411xE -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
 In file included from ../Core/Inc/mavlink/common/common.h:2903,
@@ -126,10 +126,10 @@ In file included from ../Core/Inc/mavlink/common/common.h:3024:
   256 |     return mavlink_msg_obstacle_distance_pack_status(system_id, component_id, _status, msg,  obstacle_distance->time_usec, obstacle_distance->sensor_type, obstacle_distance->distances, obstacle_distance->increment, obstacle_distance->min_distance, obstacle_distance->max_distance, obstacle_distance->increment_f, obstacle_distance->angle_offset, obstacle_distance->frame);
       |                                                                                                                                                            ~~~~~~~~~~~~~~~~~^~~~~~~~~~~
 ../Core/Src/main.c: In function 'quad_mode':
-../Core/Src/main.c:1522:17: warning: 'memcpy' writing 20 bytes into a region of size 16 overflows the destination [-Wstringop-overflow=]
- 1522 |                 memcpy(display_channels, (void*) ppm_ready_channels,
+../Core/Src/main.c:1524:17: warning: 'memcpy' writing 20 bytes into a region of size 16 overflows the destination [-Wstringop-overflow=]
+ 1524 |                 memcpy(display_channels, (void*) ppm_ready_channels,
       |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 1523 |                                 sizeof(ppm_ready_channels));
+ 1525 |                                 sizeof(ppm_ready_channels));
       |                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ../Core/Src/main.c:184:10: note: destination object 'display_channels' of size 16
   184 | uint16_t display_channels[8];
@@ -140,11 +140,11 @@ Finished building target: Marut_GroundFILL.elf
 arm-none-eabi-size  Marut_GroundFILL.elf 
 arm-none-eabi-objdump -h -S Marut_GroundFILL.elf  > "Marut_GroundFILL.list"
    text	   data	    bss	    dec	    hex	filename
-  79656	    640	 101800	 182096	  2c750	Marut_GroundFILL.elf
+  79840	    640	 101800	 182280	  2c808	Marut_GroundFILL.elf
 Finished building: default.size.stdout
  
 Finished building: Marut_GroundFILL.list
  
 
-23:30:57 Build Finished. 0 errors, 31 warnings. (took 1s.426ms)
+23:30:09 Build Finished. 0 errors, 31 warnings. (took 1s.656ms)
 
