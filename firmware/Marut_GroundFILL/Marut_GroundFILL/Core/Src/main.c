@@ -884,7 +884,7 @@ int main(void)
 
 	HAL_Delay(1000);
 
-	/*	-replaced mpu_roll_pitch_calibration_accel() , mpu_gyro_calibration() to struct-based outputs 
+	/*	-replaced mpu_roll_pitch_calibration_accel() , mpu_gyro_calibration() to struct-based outputs
 		-now it returns a struct with all calibration values , instead of calling multiple functions */
 	accel_roll_pitch_calib_constant roll_pitch_calib_offset;
 	mpu_roll_pitch_calibration_accel(&roll_pitch_calib_offset);
@@ -1798,7 +1798,7 @@ void quad_mode(void *argument)
 				desired_rate_pitch = PIDReturn[0];
 				prev_error_angle_pitch = PIDReturn[1];
 				prev_iterm_angle_pitch = PIDReturn[2];
-				
+
 				mpu_gyro_raw raw_gyro;
 			    mpu_gyro_read(&raw_gyro);
 				//rate controller
@@ -1903,7 +1903,7 @@ void quad_mode(void *argument)
 
 				mpu_gyro_raw raw_gyro;
 			    mpu_gyro_read(&raw_gyro);
-				
+
 				error_rate_roll = desired_rate_roll
 						- (raw_gyro.Gx - calibration_const_global_gx); //x
 				error_rate_pitch = desired_rate_pitch
@@ -2034,11 +2034,11 @@ void telemetry_task(void *argument)
 		}
 
 		else if (arm_flag == 0 && disarm_flag == 1) {
-			/*	-replaced mpu_accel_read() , mpu_gyro_read() to struct-based outputs 
+			/*	-replaced mpu_accel_read() , mpu_gyro_read() to struct-based outputs
 				-now it returns a struct with all calibration values , instead of calling multiple functions */
 
-			mpu_accel_raw raw_accel;
-			mpu_accel_read(&raw_accel); 
+/*			mpu_accel_raw raw_accel;
+			mpu_accel_read(&raw_accel);
 			mpu_gyro_raw raw_gyro;
 			mpu_gyro_read(&raw_gyro);
 
@@ -2055,7 +2055,7 @@ void telemetry_task(void *argument)
 			send_scaled_pressure();
 
 			send_battery_info();
-			send_status_text(MAV_SEVERITY_INFO, "DISARMED!");
+			send_status_text(MAV_SEVERITY_INFO, "DISARMED!");*/
 
 		}
 
@@ -2118,10 +2118,10 @@ void fw_mode(void *argument)
 			{
 				desired_rate_pitch = -rate_saturation_limit + 0.1f;
 			}
-			
+
 			mpu_gyro_raw raw_gyro;
 			mpu_gyro_read(&raw_gyro);
-			
+
 			Gx = raw_gyro.Gx - calibration_const_global_gx;
 			Gy = raw_gyro.Gy - calibration_const_global_gy;
 
@@ -2201,6 +2201,7 @@ void vtol_task(void *argument)
 	/* Infinite loop */
 	for (;;) {
 		actuator_emergency_stop_latch();
+		mpu_get_kalman_angles(&kalman_roll, &kalman_pitch);
 		osDelay(1);
 	}
   /* USER CODE END vtol_task */

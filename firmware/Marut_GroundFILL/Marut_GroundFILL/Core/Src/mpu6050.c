@@ -8,7 +8,7 @@
 #define SMPLRT_DIV_REG      0x19
 #define GYRO_CONFIG_REG     0x1B
 #define ACCEL_CONFIG_REG    0x1C
-#define CONFIG_REG          0x1A  
+#define CONFIG_REG          0x1A
 #define ACCEL_XOUT_H_REG    0x3B
 #define GYRO_XOUT_H_REG     0x43
 
@@ -50,13 +50,13 @@ void mpu_init(void) {
 	uint8_t data;
 	data = 0x00;
 	HAL_I2C_Mem_Write(&hi2c1, MPU6050_I2C_ADDR, PWR_MGMT_1_REG, 1, &data, 1, 50);
-	
+
 	data = 0x00;
 	HAL_I2C_Mem_Write(&hi2c1, MPU6050_I2C_ADDR, GYRO_CONFIG_REG, 1, &data, 1, 50);
-	
+
 	data = 0x00;
 	HAL_I2C_Mem_Write(&hi2c1, MPU6050_I2C_ADDR, ACCEL_CONFIG_REG, 1, &data, 1, 50);
-	
+
 	data = 0x05;
 	HAL_I2C_Mem_Write(&hi2c1, MPU6050_I2C_ADDR, CONFIG_REG, 1, &data, 1, 100);
 
@@ -87,7 +87,7 @@ void mpu_gyro_read(mpu_gyro_raw *data) {
 
 void mpu_accel_read(mpu_accel_raw *param) {
 	uint8_t Rec_Data[6];
-	
+
 	HAL_I2C_Mem_Read(&hi2c1, MPU6050_I2C_ADDR, ACCEL_XOUT_H_REG, 1, Rec_Data, 6,
 			50);
 
@@ -139,7 +139,7 @@ void mpu_roll_pitch_read_gyro(gyro_roll_pitch *data,float dt) {
 
 void mpu_roll_pitch_calibration_gyro(gyro_roll_pitch_calib_constant *data) {
 
-	float r = 0; 
+	float r = 0;
 	float p = 0;
 
 	gyro_roll_pitch angle ;
@@ -158,8 +158,8 @@ void mpu_roll_pitch_calibration_gyro(gyro_roll_pitch_calib_constant *data) {
 
 void mpu_gyro_calibration(gyro_calib *data) {
 
-	float gx = 0; 
-	float gy = 0; 
+	float gx = 0;
+	float gy = 0;
 	float gz = 0;
 
 	mpu_gyro_raw g_raw_values;
@@ -180,8 +180,8 @@ void mpu_gyro_calibration(gyro_calib *data) {
 
 void mpu_accel_calibration(accel_calib *offset) {
 
-	float ax = 0; 
-	float ay = 0; 
+	float ax = 0;
+	float ay = 0;
 	float az = 0;
 
 	mpu_accel_raw raw_values;
@@ -207,10 +207,10 @@ void mpu_accel_calibration(accel_calib *offset) {
 double Kalman_get_angle(kalman_t *kalman, double newAngle, double newRate,
 		double dt) {
 
-	
+
 	double rate = newRate - kalman->bias;
 	kalman->angle += dt * rate;
-	
+
 	kalman->p[0][0] += dt
 			* (dt * kalman->p[1][1] - kalman->p[0][1] - kalman->p[1][0]
 					+ kalman->q_angle);
@@ -218,18 +218,18 @@ double Kalman_get_angle(kalman_t *kalman, double newAngle, double newRate,
 	kalman->p[1][0] -= dt * kalman->p[1][1];
 	kalman->p[1][1] += kalman->q_bias * dt;
 
-	double y = newAngle - kalman->angle;  
+	double y = newAngle - kalman->angle;
 
-	double S = kalman->p[0][0] + kalman->r_measure; 
-    
-	double K[2]; 
+	double S = kalman->p[0][0] + kalman->r_measure;
+
+	double K[2];
 
 	K[0] = kalman->p[0][0] / S;
 	K[1] = kalman->p[1][0] / S;
 
 	kalman->angle += K[0] * y;
 	kalman->bias += K[1] * y;
-	
+
 	double tempA = kalman->p[0][0];
 	double tempB = kalman->p[0][1];
 
@@ -263,4 +263,3 @@ void mpu_get_kalman_angles(float *roll, float *pitch) {
 	*roll = Kalman_get_angle(&kalmanX, accRoll, gyroRollRate, dt);
 	*pitch = Kalman_get_angle(&kalmanY, accPitch, gyroPitchRate, dt);
 }
-

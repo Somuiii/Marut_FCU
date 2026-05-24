@@ -92,7 +92,7 @@ typedef struct{
 }gyro_roll_pitch;
 
 
- 
+
 void mpu_accel_read(mpu_accel_raw *param);
 void mpu_roll_pitch_read_accel(accel_roll_pitch *data);
 void mpu_accel_calibration(accel_calib *offset);
@@ -112,4 +112,4 @@ double Kalman_get_angle(kalman_t *kalman,
 
 void mpu_get_kalman_angles(float *roll, float *pitch);
 
-#endif 
+#endif

@@ -28,8 +28,8 @@
 ../Core/Src/main.c:1555:6:mode_handler	7
 ../Core/Src/main.c:1635:6:debounce_task	1
 ../Core/Src/main.c:1656:6:quad_mode	41
-../Core/Src/main.c:2017:6:telemetry_task	5
+../Core/Src/main.c:2017:6:telemetry_task	3
 ../Core/Src/main.c:2075:6:fw_mode	11
 ../Core/Src/main.c:2198:6:vtol_task	1
-../Core/Src/main.c:2217:6:HAL_TIM_PeriodElapsedCallback	3
-../Core/Src/main.c:2239:6:Error_Handler	1
+../Core/Src/main.c:2218:6:HAL_TIM_PeriodElapsedCallback	3
+../Core/Src/main.c:2240:6:Error_Handler	1
