@@ -2037,7 +2037,7 @@ void telemetry_task(void *argument)
 			/*	-replaced mpu_accel_read() , mpu_gyro_read() to struct-based outputs
 				-now it returns a struct with all calibration values , instead of calling multiple functions */
 
-/*			mpu_accel_raw raw_accel;
+      		mpu_accel_raw raw_accel;
 			mpu_accel_read(&raw_accel);
 			mpu_gyro_raw raw_gyro;
 			mpu_gyro_read(&raw_gyro);
@@ -2055,7 +2055,7 @@ void telemetry_task(void *argument)
 			send_scaled_pressure();
 
 			send_battery_info();
-			send_status_text(MAV_SEVERITY_INFO, "DISARMED!");*/
+			send_status_text(MAV_SEVERITY_INFO, "DISARMED!");
 
 		}
 
@@ -2201,7 +2201,6 @@ void vtol_task(void *argument)
 	/* Infinite loop */
 	for (;;) {
 		actuator_emergency_stop_latch();
-		mpu_get_kalman_angles(&kalman_roll, &kalman_pitch);
 		osDelay(1);
 	}
   /* USER CODE END vtol_task */
