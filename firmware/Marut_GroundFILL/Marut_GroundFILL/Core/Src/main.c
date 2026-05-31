@@ -705,6 +705,44 @@ void motor_check(void) {
 	}
 }
 
+void ESC_Calibrate(void)
+{
+	int low = 1000 ;
+	int high = 2000 ;
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+
+	set_raw_ccr(high, 5);
+	set_raw_ccr(high, 6);
+	set_raw_ccr(high, 4);
+	set_raw_ccr(high, 7);
+
+	HAL_Delay(3000);
+
+	set_raw_ccr(low, 5);
+	set_raw_ccr(low, 6);
+	set_raw_ccr(low, 4);
+	set_raw_ccr(low, 7);
+
+	HAL_Delay(3000);
+
+
+	HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_4);
+
+
+
+}
 
 /* Pushkar, 22-05-2026
  *  we can add modes later as per modes of FCU i.e VTOL, QUAD or FXDW*/
@@ -819,6 +857,9 @@ int main(void)
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
 	__HAL_RCC_SYSCFG_CLK_ENABLE(); 
+
+
+	ESC_Calibrate();
 
     // initilization of sensors and calibration
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
