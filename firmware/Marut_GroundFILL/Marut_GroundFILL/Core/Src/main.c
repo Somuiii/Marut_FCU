@@ -17,7 +17,6 @@
  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-
 #include "main.h"
 #include "cmsis_os.h"
 
@@ -36,9 +35,7 @@
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
-
 typedef StaticTask_t osStaticThreadDef_t;
-
 /* USER CODE BEGIN PTD */
 
 #define EL_L_DIR   (+1)
@@ -61,7 +58,6 @@ typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-
 I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim2;
@@ -75,7 +71,6 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
 
 /* Definitions for ArmDisarm */
-
 osThreadId_t ArmDisarmHandle;
 uint32_t ArmDisarmBuffer[ 128 ];
 osStaticThreadDef_t ArmDisarmControlBlock;
@@ -87,9 +82,7 @@ const osThreadAttr_t ArmDisarm_attributes = {
   .stack_size = sizeof(ArmDisarmBuffer),
   .priority = (osPriority_t) osPriorityLow,
 };
-
 /* Definitions for ModeHandler */
-
 osThreadId_t ModeHandlerHandle;
 uint32_t ModeHandlerBuffer[ 128 ];
 osStaticThreadDef_t ModeHandlerControlBlock;
@@ -101,9 +94,7 @@ const osThreadAttr_t ModeHandler_attributes = {
   .stack_size = sizeof(ModeHandlerBuffer),
   .priority = (osPriority_t) osPriorityLow,
 };
-
 /* Definitions for Debounce_Handle */
-
 osThreadId_t Debounce_HandleHandle;
 uint32_t Debounce_HandleBuffer[ 128 ];
 osStaticThreadDef_t Debounce_HandleControlBlock;
@@ -115,9 +106,7 @@ const osThreadAttr_t Debounce_Handle_attributes = {
   .stack_size = sizeof(Debounce_HandleBuffer),
   .priority = (osPriority_t) osPriorityLow,
 };
-
 /* Definitions for QuadTask */
-
 osThreadId_t QuadTaskHandle;
 uint32_t QuadTaskBuffer[ 2024 ];
 osStaticThreadDef_t QuadTaskControlBlock;
@@ -129,9 +118,7 @@ const osThreadAttr_t QuadTask_attributes = {
   .stack_size = sizeof(QuadTaskBuffer),
   .priority = (osPriority_t) osPriorityRealtime,
 };
-
 /* Definitions for TelemetryTask */
-
 osThreadId_t TelemetryTaskHandle;
 uint32_t TelemetryTaskBuffer[ 2024 ];
 osStaticThreadDef_t TelemetryTaskControlBlock;
@@ -143,9 +130,7 @@ const osThreadAttr_t TelemetryTask_attributes = {
   .stack_size = sizeof(TelemetryTaskBuffer),
   .priority = (osPriority_t) osPriorityNormal,
 };
-
 /* Definitions for FixedWingTask */
-
 osThreadId_t FixedWingTaskHandle;
 uint32_t FixedWingTaskBuffer[ 2024 ];
 osStaticThreadDef_t FixedWingTaskControlBlock;
@@ -157,9 +142,7 @@ const osThreadAttr_t FixedWingTask_attributes = {
   .stack_size = sizeof(FixedWingTaskBuffer),
   .priority = (osPriority_t) osPriorityRealtime,
 };
-
 /* Definitions for VtolMode */
-
 osThreadId_t VtolModeHandle;
 uint32_t VtolModeBuffer[ 2024 ];
 osStaticThreadDef_t VtolModeControlBlock;
@@ -171,20 +154,17 @@ const osThreadAttr_t VtolMode_attributes = {
   .stack_size = sizeof(VtolModeBuffer),
   .priority = (osPriority_t) osPriorityRealtime,
 };
-
 /* Definitions for timer_sem */
-
 osSemaphoreId_t timer_semHandle;
 const osSemaphoreAttr_t timer_sem_attributes = {
   .name = "timer_sem"
 };
-
 /* USER CODE BEGIN PV */
 
-volatile uint16_t ppm_live_channels[10];
-volatile uint16_t ppm_ready_channels[10];
+volatile uint16_t ppm_live_channels[6];
+volatile uint16_t ppm_ready_channels[6];
 
-uint16_t display_channels[10]; // NOTE : Keep Channels uniform
+uint16_t display_channels[6]; // NOTE : Keep Channels uniform
 volatile uint8_t pulse = 1;
 
 volatile uint8_t ppm_new_data_flag = 0;
@@ -346,7 +326,6 @@ int bounce_task = 0;
 int telemetery_task = 0;
 int arm_disarm_task = 0;
 int itr_running = 100;
-
 uint32_t t1; 
 uint32_t t2; 
 uint32_t dt_n;
@@ -370,6 +349,17 @@ float a_global_z = 0;
 int rc_max_us = 2000;
 int rc_min_us = 1000;
 
+volatile uint16_t ch1_dbg;
+volatile uint16_t ch2_dbg;
+volatile uint16_t ch3_dbg;
+volatile uint16_t ch4_dbg;
+volatile uint16_t ch5_dbg;
+volatile uint16_t ch6_dbg;
+volatile uint16_t ch7_dbg;
+volatile uint16_t ch8_dbg;
+volatile uint16_t ch9_dbg;
+volatile uint16_t ch10_dbg;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -391,7 +381,6 @@ void quad_mode(void *argument);
 void telemetry_task(void *argument);
 void fw_mode(void *argument);
 void vtol_task(void *argument);
-void actuator_emergency_stop_latch(void);
 
 /* USER CODE BEGIN PFP */
 
@@ -465,10 +454,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 				ppm_live_channels[4] = pulse_width;
 				pulse++;
 				break;
-			case 6:
+	      case 6:
 				ppm_live_channels[5] = pulse_width;
 				pulse++;
 				break;
+		/*
 			case 7:
 				ppm_live_channels[6] = pulse_width;
 				pulse++;
@@ -484,7 +474,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 			case 10:
 				ppm_live_channels[9] = pulse_width;
 				pulse++;
-				break;
+				break;*/
 			default:
 				pulse++;
 				break;
@@ -871,8 +861,6 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART6_UART_Init();
-
-
   /* USER CODE BEGIN 2 */
 	__HAL_RCC_SYSCFG_CLK_ENABLE(); 
 
@@ -909,7 +897,6 @@ int main(void)
   /* Init scheduler */
   osKernelInitialize();
 
-
   /* USER CODE BEGIN RTOS_MUTEX */
 	/* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
@@ -942,15 +929,13 @@ int main(void)
   Debounce_HandleHandle = osThreadNew(debounce_task, NULL, &Debounce_Handle_attributes);
 
   /* creation of QuadTask */
-  //QuadTaskHandle = osThreadNew(quad_mode, NULL, &QuadTask_attributes);
+ // QuadTaskHandle = osThreadNew(quad_mode, NULL, &QuadTask_attributes);
 
   /* creation of TelemetryTask */
   TelemetryTaskHandle = osThreadNew(telemetry_task, NULL, &TelemetryTask_attributes);
 
-
-
   /* creation of FixedWingTask */
-  //FixedWingTaskHandle = osThreadNew(fw_mode, NULL, &FixedWingTask_attributes);
+ // FixedWingTaskHandle = osThreadNew(fw_mode, NULL, &FixedWingTask_attributes);
 
   /* creation of VtolMode */
   //VtolModeHandle = osThreadNew(vtol_task, NULL, &VtolMode_attributes);
@@ -1494,12 +1479,20 @@ void arm_disarm(void *argument)
 	/* Infinite loop */
 	for (;;) {
 
+		if(display_channels[4] > 1900)
+		{
+		    measure = 1;
+		}
+		else
+		{
+		    measure = 0;
+		}
+
 		arm_disarm_task ^= 1;
 
-		if (display_channels[4] > 1900 && i_oce != 1
-				&& display_channels[2] < 1100) {
+		if (display_channels[4] > 1700 && i_oce != 1) {
 
-			j_oce = 0;
+			i_oce = 0;
 			arm_flag = 1;
 			disarm_flag = 0;
 
@@ -1515,7 +1508,7 @@ void arm_disarm(void *argument)
 			i_oce = 1;
 
 		} 
-		else if (display_channels[4] < 1900 && j_oce != 1)
+		else if (display_channels[4] < 1700 && j_oce != 1)
 		{
 			j_oce = 0;
 
@@ -1668,7 +1661,7 @@ void quad_mode(void *argument)
 	/* Infinite loop */
 
 	for (;;) {
-		actuator_emergency_stop_latch();
+		//actuator_emergency_stop_latch();
 		quad_task ^= 1;
 		static float angle_saturation_limit = 20.0f;
 
@@ -1689,6 +1682,17 @@ void quad_mode(void *argument)
 
 		memcpy(display_channels, (void*) ppm_ready_channels,
 				sizeof(ppm_ready_channels));
+
+		ch1_dbg = display_channels[0];
+		ch2_dbg = display_channels[1];
+		ch3_dbg = display_channels[2];
+		ch4_dbg = display_channels[3];
+		ch5_dbg = display_channels[4];
+		ch6_dbg = display_channels[5];
+		/*ch7_dbg = display_channels[6];
+		ch8_dbg = display_channels[7];
+		ch9_dbg = display_channels[8];
+		ch10_dbg = display_channels[9];*/
 
 		ppm_new_data_flag = 0;
 
@@ -1751,7 +1755,7 @@ void quad_mode(void *argument)
 
 		if (arm_flag == 1 && disarm_flag == 0) { //stabilize mode
 
-			if (display_channels[7] > 1900) {
+			if (display_channels[5] > 1700) {
 
 				desired_angle_roll = 0.10 * (display_channels[0] - 1500);
 				desired_angle_pitch = 0.10 * (display_channels[1] - 1500);
@@ -1885,12 +1889,12 @@ void quad_mode(void *argument)
 				}
 
 				set_raw_ccr(M1, 5);
-				set_raw_ccr(M4, 7);
-				set_raw_ccr(M3, 4);
+				set_raw_ccr(M4, 1);
+				set_raw_ccr(M3, 3);
 				set_raw_ccr(M2, 6);
 
 			} 
-			else if (display_channels[7] < 1300) 
+			else if (display_channels[5] < 1300)
 			{ 
 				desired_rate_roll = 0.15 * (display_channels[0] - 1500);
 				desired_rate_pitch = 0.15 * (display_channels[1] - 1500);
@@ -1992,8 +1996,8 @@ void quad_mode(void *argument)
 				}
 
 				set_raw_ccr(M1, 5); // func 4 is m3
-				set_raw_ccr(M4, 7); // func 7 is m4
-				set_raw_ccr(M3, 4);  // func 5 is m1
+				set_raw_ccr(M4, 1); // func 7 is m4
+				set_raw_ccr(M3, 3);  // func 5 is m1
 				set_raw_ccr(M2, 6); //func 6 is m2
 
 			}
