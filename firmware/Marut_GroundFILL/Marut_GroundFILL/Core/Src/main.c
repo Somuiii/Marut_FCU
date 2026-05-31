@@ -660,50 +660,6 @@ void reset_pid(void) {
 	prev_iterm_angle_pitch = 0;
 }
 
-void servo_test_sweep(void) {
-	
-	int pulse;
-
-	/* Start PWM on all servo channels */
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-
-	/* Sweep from 1000 to 2000 */
-	for (pulse = 500; pulse <= 2000; pulse += 50) {
-
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, pulse);
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, pulse);
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, pulse);
-
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pulse);
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, pulse);
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, pulse);
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, pulse);
-
-		osDelay(500);
-	}
-
-	/* Sweep back from 2000 to 1000 */
-
-	for (pulse = 2000; pulse >= 1000; pulse -= 50) {
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, pulse);
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, pulse);
-		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, pulse);
-
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pulse);
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, pulse);
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3, pulse);
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, pulse);
-
-		osDelay(500);
-	}
-
-}
 
 void motor_check(void) {
 	int pwm;
