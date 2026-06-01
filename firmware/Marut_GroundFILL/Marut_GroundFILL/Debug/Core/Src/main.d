@@ -281,7 +281,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Inc/mavlink/common/../standard/../minimal/minimal.h \
  ../Core/Inc/mavlink/common/../standard/../minimal/./mavlink_msg_heartbeat.h \
  ../Core/Inc/mavlink/common/../standard/../minimal/./mavlink_msg_protocol_version.h \
- ../Core/Inc/mavlink/common/../mavlink_get_info.h
+ ../Core/Inc/mavlink/common/../mavlink_get_info.h \
+ ../Core/Inc/Support_function.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
@@ -569,3 +570,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/mavlink/common/../standard/../minimal/./mavlink_msg_heartbeat.h:
 ../Core/Inc/mavlink/common/../standard/../minimal/./mavlink_msg_protocol_version.h:
 ../Core/Inc/mavlink/common/../mavlink_get_info.h:
+../Core/Inc/Support_function.h:
