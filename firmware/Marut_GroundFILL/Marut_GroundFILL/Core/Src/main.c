@@ -278,16 +278,16 @@ float gx;
 float gy;
 float gz;
 
-float p_rate_roll_s = 0.88f;
-float p_rate_pitch_s = 0.88f;
+float p_rate_roll_s = 0.55;
+float p_rate_pitch_s = 0.55f;
 float p_rate_yaw_s = 3;
 
-float i_rate_roll_s = 0.31f;
-float i_rate_pitch_s = 0.31f;
+float i_rate_roll_s = 0.25f;
+float i_rate_pitch_s = 0.25f;
 float i_rate_yaw_s = 12;
 
-float d_rate_roll_s = 0.01f;
-float d_rate_pitch_s = 0.01f;
+float d_rate_roll_s = 0.001f;
+float d_rate_pitch_s = 0.001f;
 float d_rate_yaw_s = 0;
 
 float p_angle_roll_s = 1.11f;
@@ -299,12 +299,12 @@ float i_angle_pitch_s = 0.31f;
 float d_angle_roll_s = 0.011f;
 float d_angle_pitch_s = 0.011f;
 
-float p_rate_roll_r = 0.82f;
-float p_rate_pitch_r = 0.82f;
+float p_rate_roll_r = 0.55f;
+float p_rate_pitch_r = 0.55f;
 float p_rate_yaw_r = 2.5;
 
-float i_rate_roll_r = 0.72f;
-float i_rate_pitch_r = 0.72f;
+float i_rate_roll_r = 0.20f;
+float i_rate_pitch_r = 0.20f;
 float i_rate_yaw_r = 12;
 
 float d_rate_roll_r = 0.011f;
@@ -659,7 +659,7 @@ int main(void)
 	__HAL_RCC_SYSCFG_CLK_ENABLE(); 
 
 
-	ESC_Calibrate();
+	//ESC_Calibrate();
 
     // initilization of sensors and calibration
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
@@ -1270,28 +1270,27 @@ static void MX_GPIO_Init(void)
 void arm_disarm(void *argument)
 {
   /* USER CODE BEGIN 5 */
-	int i_oce = 0; //execute once flags
+	int i_oce = 0;
 	int j_oce = 0;
+
+	int calib_once = 0; // Note: Calibrates only once per boot on arming, currently for testing will be mapped to a user input later.
 
 	/* Infinite loop */
 	for (;;) {
-
-		if(display_channels[4] > 1900)
-		{
-		    measure = 1;
-		}
-		else
-		{
-		    measure = 0;
-		}
 
 		arm_disarm_task ^= 1;
 
 		if (display_channels[4] > 1700 && i_oce != 1) {
 
-			i_oce = 0;
+			i_oce = 1;
 			arm_flag = 1;
 			disarm_flag = 0;
+
+			if (calib_once == 0 )
+			{
+				ESC_Calibrate();
+				calib_once = 1;
+			}
 
 			HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 			HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
@@ -1302,13 +1301,15 @@ void arm_disarm(void *argument)
 			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
 			HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
 
-			i_oce = 1;
-
-		} 
-		else if (display_channels[4] < 1700 && j_oce != 1)
-		{
 			j_oce = 0;
 
+
+		} 
+		else if (display_channels[4] < 1300 && j_oce != 1)
+		{
+
+
+            j_oce = 1;
 			arm_flag = 0;
 			disarm_flag = 1;
 			reset_pid();
@@ -1322,7 +1323,8 @@ void arm_disarm(void *argument)
 			HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_3);
 			HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_4);
 
-			j_oce = 1;
+			i_oce = 0;
+
 
 		} 
 		else 
@@ -1486,10 +1488,6 @@ void quad_mode(void *argument)
 		ch4_dbg = display_channels[3];
 		ch5_dbg = display_channels[4];
 		ch6_dbg = display_channels[5];
-		/*ch7_dbg = display_channels[6];
-		ch8_dbg = display_channels[7];
-		ch9_dbg = display_channels[8];
-		ch10_dbg = display_channels[9];*/
 
 		ppm_new_data_flag = 0;
 
@@ -1584,7 +1582,7 @@ void quad_mode(void *argument)
 				mpu_get_kalman_angles(&kalman_roll, &kalman_pitch);
 
 				error_angle_roll = desired_angle_roll - kalman_roll;
-				error_angle_pitch = desired_angle_pitch - kalman_pitch;
+				error_angle_pitch = desired_angle_pitch - (-kalman_pitch);
 
 				pid_equation(error_angle_roll, p_angle_roll_s, i_angle_roll_s,
 						d_angle_roll_s, prev_error_angle_roll, prev_iterm_angle_roll);
@@ -1686,8 +1684,8 @@ void quad_mode(void *argument)
 				}
 
 				set_raw_ccr(M1, 5);
-				set_raw_ccr(M4, 1);
-				set_raw_ccr(M3, 3);
+				set_raw_ccr(M4, 3);
+				set_raw_ccr(M3, 1);
 				set_raw_ccr(M2, 6);
 
 			} 
@@ -1792,10 +1790,10 @@ void quad_mode(void *argument)
 					reset_pid();
 				}
 
-				set_raw_ccr(M1, 5); // func 4 is m3
-				set_raw_ccr(M4, 1); // func 7 is m4
-				set_raw_ccr(M3, 3);  // func 5 is m1
-				set_raw_ccr(M2, 6); //func 6 is m2
+				set_raw_ccr(M1, 5);
+				set_raw_ccr(M4, 3);
+				set_raw_ccr(M3, 1);
+				set_raw_ccr(M2, 6);
 
 			}
 
