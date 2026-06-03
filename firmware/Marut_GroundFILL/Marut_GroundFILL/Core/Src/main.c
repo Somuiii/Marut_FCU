@@ -299,8 +299,8 @@ float i_angle_pitch_s = 0.31f;
 float d_angle_roll_s = 0.011f;
 float d_angle_pitch_s = 0.011f;
 
-float p_rate_roll_r = 0.55f;
-float p_rate_pitch_r = 0.55f;
+float p_rate_roll_r = 0.65f;
+float p_rate_pitch_r = 0.65f;
 float p_rate_yaw_r = 2.5;
 
 float i_rate_roll_r = 0.20f;
