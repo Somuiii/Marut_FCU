@@ -142,7 +142,8 @@ float map_rc_to_pid(uint16_t rc_value) {
 	{
 		rc_value = rc_min_us;
 	}
-	return (rc_value - rc_min_us) * 10.0f / (rc_max_us - rc_min_us);
+	/*return (rc_value - rc_min_us) * 10.0f / (rc_max_us - rc_min_us);*/
+	return (rc_value - 1000) * 2.0f / 1000.0f;
 }
 
 void motor_check(void) {
