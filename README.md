@@ -4,20 +4,18 @@ Open-source tri-mode flight control firmware from India, built to unify quadcopt
 
 ![License](https://img.shields.io/badge/license-MIT-blue) ![Platform](https://img.shields.io/badge/platform-STM32F4-lightgrey) ![Build](https://img.shields.io/badge/build-STM32CubeIDE-green) ![Version](https://img.shields.io/github/v/tag/TheGoodDevil00/Marut_FCU?label=release) ![Status](https://img.shields.io/badge/status-active_development-yellow)
 
-Marut FCU is a student-built open-source flight control unit developed at AISSMS Institute of Information Technology, Pune, with the explicit goal of supporting quadcopter, fixed-wing, and VTOL platforms under one repository and one evolving firmware architecture. The project is built around STM32F4 targets, STM32CubeIDE-generated workspaces, CMSIS-RTOS v2 on FreeRTOS, and a handwritten control and telemetry stack that remains readable enough for contributors to extend across avionics, firmware, and hardware domains. What makes it distinctive is not only the tri-mode ambition, but the decision to keep the hardware, firmware structure, build artifacts, and engineering workflow visible in-repo rather than hiding them behind opaque tooling. The repository already contains active integrated FCU targets, isolated mode-validation targets, and open PCB/composite scaffolding, while some fixed-wing and VTOL paths remain explicitly marked as pending hardware validation. It should be read as real embedded systems work under active development, not as a finished flight-certified stack.
+Marut FCU is a student-built open-source flight control unit developed with the explicit goal of supporting quadcopter, fixed-wing, and VTOL platforms under one repository and one evolving firmware architecture. The project is built around STM32F4 targets, STM32CubeIDE, CMSIS-RTOS v2 on FreeRTOS, and a handwritten control and telemetry stack that remains readable enough for contributors to extend across avionics, firmware, and hardware domains. What makes it distinctive is not only the tri-mode ambition, but the decision to keep the hardware, firmware structure, build artifacts, and engineering workflow visible in-repo rather than hiding them behind opaque tooling. The repository already contains active integrated FCU targets, isolated mode-validation targets, and open PCB/composite scaffolding, while some fixed-wing and VTOL paths remain explicitly marked as pending hardware validation. It should be read as real embedded systems work under active development, not as a finished flight-certified stack.
 
 ---
 
 ## Feature Highlights
 
 - **Tri-mode flight architecture:** The repository is structured around a single program direction that covers quadcopter, fixed-wing, and VTOL control paths, with the F446 multi-mode targets carrying the broadest implementation surface today.
-- **Unified target strategy:** Integrated FCU targets, bench-development targets, and isolated mode targets all live under one firmware tree with consistent STM32CubeIDE project structure and shared module concepts.
 - **Full sensor stack:** The active targets integrate the expected FCU sensor layers for IMU, barometric altitude, magnetometer heading, and GPS parsing through target-specific modules.
-- **MAVLink telemetry contract:** The codebase implements MAVLink helpers for core GCS-facing telemetry including `HEARTBEAT`, `ATTITUDE`, `GPS_RAW_INT`, `GLOBAL_POSITION_INT`, and `BATTERY_STATUS`, with target-specific loops adding pressure and status messages where wired in.
+- **MAVLink telemetry contract:** The codebase implements MAVLink helpers for core GCS-facing telemetry including `HEARTBEAT`, `ATTITUDE`, `GPS_RAW_INT`, `GLOBAL_POSITION_INT`, and `BATTERY_STATUS`.
 - **FreeRTOS task model:** Firmware targets use CMSIS-RTOS v2 task definitions generated from CubeMX and implemented in handwritten `main.c` task bodies.
 - **Open hardware domains:** PCB assets and composite-domain scaffolding are versioned in the same repository so avionics, board, and vehicle contributors can work from the same project root.
 - **Tracked release artifacts:** `Debug/` outputs, including `.elf` and related build files, are intentionally kept in version control as part of the repository workflow.
-- **Built at AISSMS IoIT, Pune:** Marut FCU is being developed by student engineers at AISSMS IoIT for the open-source aviation and embedded systems community.
 
 ---
 
@@ -96,78 +94,6 @@ Marut FCU is a student-built open-source flight control unit developed at AISSMS
 - **Status:** Active
 
 This is the primary integrated FCU target and the closest thing to the canonical custom-board firmware in the repository. It carries the broadest STM32F411 integration surface, including sensor drivers, RC capture, PWM output, and MAVLink telemetry. The fixed-wing and VTOL handlers exist in the source and can be spawned by mode logic, but they are not created at startup by default and should not be treated as validated production paths.
-
-#### `firmware/nucleo`
-
-- **Directory:** [`firmware/nucleo/`](firmware/nucleo/)
-- **MCU:** `STM32F446R(C-E)Tx`
-- **Active peripherals from `.ioc`:** `ADC1`, `I2C1`, `USART1`, `USART2`, `USART3`, `USART6`, `TIM2`, `TIM3`, `TIM4`
-- **RTOS tasks defined in the target:**
-
-  | Task | Role |
-  |---|---|
-  | `defaultTask` -> `servo_mapping` | PWM / output mapping path |
-  | `telem_task` -> `telemetry_task` | bench telemetry and sensor bring-up |
-  | `rc_input` -> `arm_disarm` | RC input and arm state handling |
-
-- **Status:** Bench-dev
-
-This target is the clearest bring-up and benchtop development platform for the F446 family. It includes GPS, barometer, magnetometer, and MAVLink helper usage in a compact task model that is well-suited for peripheral validation before porting changes into the larger integrated targets.
-
-#### `firmware/nf446re`
-
-- **Directory:** [`firmware/nf446re/`](firmware/nf446re/)
-- **MCU:** `STM32F446R(C-E)Tx`
-- **Active peripherals from `.ioc`:** `I2C1` and `I2C3` in fast mode, `USART1`, `USART2`, `USART6`, `TIM2`, `TIM3`, `TIM4`, `TIM9`, `TIM10`
-- **RTOS tasks defined in the target:**
-
-  | Task | Role |
-  |---|---|
-  | `ArmDisarm` | arm/disarm state management |
-  | `ModeHandler` | flight-mode switching |
-  | `Debounce_Handle` | mode-input debouncing |
-  | `QuadTask` | integrated multirotor control loop |
-  | `TelemetryTask` | MAVLink telemetry emission |
-  | `FixedWingTask` | fixed-wing control path |
-  | `VtolMode` | VTOL control path |
-
-- **Status:** In-progress
-
-This is the most explicit multi-mode target in the repository and the clearest embodiment of the project's tri-mode direction. It contains compiled fixed-wing and VTOL task paths, but startup initialization for those paths is disabled in the current code pending hardware validation. It should therefore be treated as an active development target, not a flight-ready multi-mode release.
-
-#### `firmware/modes/rate`
-
-- **Directory:** [`firmware/modes/rate/`](firmware/modes/rate/)
-- **MCU:** `STM32F411C(C-E)Ux`
-- **Active peripherals from `.ioc`:** `I2C1`, `USART2`, `TIM2`, `TIM3`, `TIM4`, `TIM10`, `TIM11`
-- **RTOS tasks with roles:** This target is primarily an isolated rate-mode workspace rather than an integrated multi-task FCU target; its value is in scoped loop validation and peripheral mapping, not in a broad task graph.
-- **Status:** Pending validation
-
-Use this target when validating or tuning rate-mode behavior without the full integrated firmware surface. It is best read as a focused experimental target supporting the main controller architecture.
-
-#### `firmware/modes/stabilize`
-
-- **Directory:** [`firmware/modes/stabilize/`](firmware/modes/stabilize/)
-- **MCU:** `STM32F411C(C-E)Ux`
-- **Active peripherals from `.ioc`:** `I2C1`, `USART2`, `TIM2`, `TIM3`, `TIM4`, `TIM10`
-- **RTOS tasks with roles:** Like the rate-mode target, this workspace is best treated as an isolated stabilize-mode validation target rather than a full integrated FCU task architecture.
-- **Status:** Pending validation
-
-This target exists to isolate stabilized multirotor behavior during development and debugging. It is useful for control-loop work that should be proven in a narrower environment before integration into `firmware/core`.
-
-### Key Handwritten Modules
-
-Verified against [`firmware/core/Core/Src/`](firmware/core/Core/Src/):
-
-| File | Purpose |
-|---|---|
-| `Core/Src/main.c` | top-level initialization, task definitions, mode switching, and control-loop bodies |
-| `Core/Src/mpu6050.c` | IMU driver functions and attitude-estimation support |
-| `Core/Src/bmp280.c` | barometer access and altitude calculation |
-| `Core/Src/mav_messages.c` | MAVLink message assembly and UART transmit helpers |
-
-The current `firmware/core` target does not include standalone `gps_parser.c` or `qmc5883*.c` source files in its `Core/Src/` directory, even though those modules exist in other targets and are part of the wider repository architecture.
-
 ---
 
 ## Getting Started
@@ -183,7 +109,7 @@ The current `firmware/core` target does not include standalone `gps_parser.c` or
 
 ## Hardware
 
-The canonical board for `firmware/core` is the custom Marut FCU flight controller based on the `STM32F411CEUx` in the `UFQFPN48` package. The `firmware/nucleo` target uses the `NUCLEO-F446RE` as the primary bring-up and benchtop development platform, while `firmware/nf446re` extends that F446-class development path toward the repository's multi-mode architecture. PCB assets live under [`pcb/`](pcb/), with the currently populated board workspace centered on [`pcb/marut_ground_fill/`](pcb/marut_ground_fill/); the fabrication-oriented folders [`pcb/schematics/`](pcb/schematics/), [`pcb/gerbers/`](pcb/gerbers/), and [`pcb/bom/`](pcb/bom/) are present and ready to receive design exports. The flight-computer BOM belongs in [`pcb/bom/`](pcb/bom/). Composite and structural assets are scaffolded under [`composite/`](composite/), specifically in [`composite/cad/`](composite/cad/), [`composite/layup_specs/`](composite/layup_specs/), and [`composite/simulations/`](composite/simulations/), but those domains are still at an early repository stage.
+The board for `firmware/core` is the custom Marut FCU flight controller based on the `STM32F411CEUx` in the `UFQFPN48` package. The `firmware/nucleo` target uses the `NUCLEO-F446RE` as the primary bring-up and benchtop development platform. PCB assets live under [`pcb/`](pcb/), with the currently populated board workspace centered on [`pcb/marut_ground_fill/`](pcb/marut_ground_fill/); the fabrication-oriented folders [`pcb/schematics/`](pcb/schematics/), [`pcb/gerbers/`](pcb/gerbers/), and [`pcb/bom/`](pcb/bom/) are present and ready to receive design exports. The flight-computer BOM belongs in [`pcb/bom/`](pcb/bom/). Composite and structural assets are scaffolded under [`composite/`](composite/), specifically in [`composite/cad/`](composite/cad/), [`composite/layup_specs/`](composite/layup_specs/), and [`composite/simulations/`](composite/simulations/), but those domains are still at an early repository stage.
 
 ---
 
