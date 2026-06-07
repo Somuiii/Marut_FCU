@@ -278,38 +278,31 @@ float gx;
 float gy;
 float gz;
 
-float p_rate_roll_s = 0.55;
-float p_rate_pitch_s = 0.55f;
-float p_rate_yaw_s = 3;
+// Note: PID Globals
 
-float i_rate_roll_s = 0.25f;
-float i_rate_pitch_s = 0.25f;
-float i_rate_yaw_s = 12;
+// RATE LOOP
+float p_rate_roll  = 0.51f;  //0.51 p pretty stable huh
+float p_rate_pitch = 0.51f;
+float p_rate_yaw   = 2.50f;
 
-float d_rate_roll_s = 0.001f;
-float d_rate_pitch_s = 0.001f;
-float d_rate_yaw_s = 0;
+float i_rate_roll  = 0.10f; // now to tune this
+float i_rate_pitch = 0.10f;
+float i_rate_yaw   = 0.80f;
 
-float p_angle_roll_s = 1.11f;
-float p_angle_pitch_s = 1.11f;
+float d_rate_roll  = 0.008f;
+float d_rate_pitch = 0.008f;
+float d_rate_yaw   = 0.0f;
 
-float i_angle_roll_s = 0.31f;
-float i_angle_pitch_s = 0.31f;
+// ANGLE LOOP
+float p_angle_roll  = 3.0f;
+float p_angle_pitch = 3.0f;
 
-float d_angle_roll_s = 0.011f;
-float d_angle_pitch_s = 0.011f;
+float i_angle_roll  = 0.0f;
+float i_angle_pitch = 0.0f;
 
-float p_rate_roll_r = 0.65f;
-float p_rate_pitch_r = 0.65f;
-float p_rate_yaw_r = 2.5;
+float d_angle_roll  = 0.0f;
+float d_angle_pitch = 0.0f;
 
-float i_rate_roll_r = 0.20f;
-float i_rate_pitch_r = 0.20f;
-float i_rate_yaw_r = 12;
-
-float d_rate_roll_r = 0.011f;
-float d_rate_pitch_r = 0.011f;
-float d_rate_yaw_r = 0;
 
 float xx = 0;
 float yy = 0;
@@ -318,9 +311,12 @@ uint32_t current_tick_quad = 0;
 uint32_t current_tick_fw = 0;
 uint32_t current_tick_vtol = 0;
 
+//Baro and Mag external read variables
 float alt_ext = 0;
 float mag_ext = 0;
 
+
+// Status variables
 int mode_task = 0;
 int quad_task = 0;
 int bounce_task = 0;
@@ -332,11 +328,14 @@ uint32_t t2;
 uint32_t dt_n;
 int tim_flag = 0;
 
+int in_stabilize = 0;
+int in_rate = 0;
+
+//SW Timer variables
 static uint32_t last = 0;
 uint32_t now;
 
 int m_t = 0;
-
 int measure = 0;
 
 float g_global_x = 0;
@@ -347,8 +346,12 @@ float a_global_x = 0;
 float a_global_y = 0;
 float a_global_z = 0;
 
+//RC Calibration (preliminary) variables
+
 extern int rc_max_us;
 extern int rc_min_us;
+
+//RC Channel debug variables
 
 volatile uint16_t ch1_dbg;
 volatile uint16_t ch2_dbg;
@@ -392,7 +395,7 @@ void vtol_task(void *argument);
 PUTCHAR_PROTOTYPE {
 	/* Place your implementation of fputc here */
 	/* e.g. write a character to the USART1 and Loop until the end of transmission */
-	HAL_UART_Transmit(&huart1, (uint8_t*) &ch, 1, 0xFFFF);
+	HAL_UART_Transmit(&huart2, (uint8_t*) &ch, 1, 0xFFFF);
 
 	return ch;
 }
@@ -1154,7 +1157,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 9600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -1187,7 +1190,7 @@ static void MX_USART6_UART_Init(void)
 
   /* USER CODE END USART6_Init 1 */
   huart6.Instance = USART6;
-  huart6.Init.BaudRate = 115200;
+  huart6.Init.BaudRate = 9600;
   huart6.Init.WordLength = UART_WORDLENGTH_8B;
   huart6.Init.StopBits = UART_STOPBITS_1;
   huart6.Init.Parity = UART_PARITY_NONE;
@@ -1454,13 +1457,15 @@ void quad_mode(void *argument)
 	static int16_t pitch_offset = 0;
 	static int sample_limit = 0;
 
+	int test_var = 0;
+
 	HAL_TIM_Base_Start(&htim9);
 	HAL_TIM_Base_Start_IT(&htim10);
 
 	/* Infinite loop */
 
 	for (;;) {
-		//actuator_emergency_stop_latch();
+
 		quad_task ^= 1;
 		static float angle_saturation_limit = 20.0f;
 
@@ -1550,7 +1555,12 @@ void quad_mode(void *argument)
 
 		if (arm_flag == 1 && disarm_flag == 0) { //stabilize mode
 
-			if (display_channels[5] > 1700) {
+
+
+			if (test_var) {
+
+				in_stabilize = 1;
+				in_rate = 0;
 
 				desired_angle_roll = 0.10 * (display_channels[0] - 1500);
 				desired_angle_pitch = 0.10 * (display_channels[1] - 1500);
@@ -1584,15 +1594,15 @@ void quad_mode(void *argument)
 				error_angle_roll = desired_angle_roll - kalman_roll;
 				error_angle_pitch = desired_angle_pitch - (-kalman_pitch);
 
-				pid_equation(error_angle_roll, p_angle_roll_s, i_angle_roll_s,
-						d_angle_roll_s, prev_error_angle_roll, prev_iterm_angle_roll);
+				pid_equation(error_angle_roll, p_angle_roll, i_angle_roll,
+						d_angle_roll, prev_error_angle_roll, prev_iterm_angle_roll);
 
 				desired_rate_roll = PIDReturn[0];
 				prev_error_angle_roll = PIDReturn[1];
 				prev_iterm_angle_roll = PIDReturn[2];
 
-				pid_equation(error_angle_pitch, p_angle_pitch_s, i_angle_pitch_s,
-						d_angle_pitch_s, prev_error_angle_pitch, prev_iterm_angle_pitch);
+				pid_equation(error_angle_pitch, p_angle_pitch, i_angle_pitch,
+						d_angle_pitch, prev_error_angle_pitch, prev_iterm_angle_pitch);
 
 				desired_rate_pitch = PIDReturn[0];
 				prev_error_angle_pitch = PIDReturn[1];
@@ -1610,21 +1620,21 @@ void quad_mode(void *argument)
 				error_rate_yaw = desired_rate_yaw
 						- (raw_gyro.Gz - calibration_const_global_gz); //z
 
-				pid_equation(error_rate_roll, p_rate_roll_s, i_rate_roll_s,
-						d_rate_roll_s, prev_error_rate_roll, prev_iterm_rate_roll);
+				pid_equation(error_rate_roll, p_rate_roll, i_rate_roll,
+						d_rate_roll, prev_error_rate_roll, prev_iterm_rate_roll);
 
 				input_roll = PIDReturn[0];
 				prev_error_rate_roll = PIDReturn[1];
 				prev_iterm_rate_roll = PIDReturn[2];
 
-				pid_equation(error_rate_pitch, p_rate_pitch_s, i_rate_pitch_s,
-						d_rate_pitch_s, prev_error_rate_pitch, prev_iterm_rate_pitch);
+				pid_equation(error_rate_pitch, p_rate_pitch, i_rate_pitch,
+						d_rate_pitch, prev_error_rate_pitch, prev_iterm_rate_pitch);
 
 				input_pitch = PIDReturn[0];
 				prev_error_rate_pitch = PIDReturn[1];
 				prev_iterm_rate_pitch = PIDReturn[2];
 
-				pid_equation(error_rate_yaw, p_rate_yaw_s, i_rate_yaw_s, d_rate_yaw_s,
+				pid_equation(error_rate_yaw, p_rate_yaw, i_rate_yaw, d_rate_yaw,
 						prev_error_rate_yaw, prev_iterm_rate_yaw);
 
 				input_yaw = PIDReturn[0];
@@ -1689,16 +1699,18 @@ void quad_mode(void *argument)
 				set_raw_ccr(M2, 6);
 
 			} 
-			else if (display_channels[5] < 1300)
+			else if (!test_var)
 			{ 
+
+				in_stabilize = 0;
+				in_rate = 1;
+
 				desired_rate_roll = 0.15 * (display_channels[0] - 1500);
 				desired_rate_pitch = 0.15 * (display_channels[1] - 1500);
 				input_throttle = display_channels[2];
 				desired_rate_yaw = 0.15 * (display_channels[3] - 1500);
 
 				desired_rate_yaw = -desired_rate_yaw;
-
-				mpu_get_kalman_angles(&kalman_roll, &kalman_pitch);
 
 				mpu_gyro_raw raw_gyro;
 			    mpu_gyro_read(&raw_gyro);
@@ -1710,25 +1722,23 @@ void quad_mode(void *argument)
 				error_rate_yaw = desired_rate_yaw
 						- (raw_gyro.Gz - calibration_const_global_gz); //z
 
-				p_rate_roll_s = map_rc_to_pid(display_channels[5]);
-				p_rate_pitch_s = map_rc_to_pid(display_channels[5]);
+				i_rate_roll = map_rc_to_pid(display_channels[5]);
+				i_rate_pitch = map_rc_to_pid(display_channels[5]);
 
-				i_rate_roll_s = map_rc_to_pid(display_channels[6]);
-				i_rate_pitch_s = map_rc_to_pid(display_channels[6]);
 
-				pid_equation(error_rate_roll, p_rate_roll_s, i_rate_roll_s,
-						d_rate_roll_s, prev_error_rate_roll, prev_iterm_rate_roll);
+				pid_equation(error_rate_roll, p_rate_roll, i_rate_roll,
+						d_rate_roll, prev_error_rate_roll, prev_iterm_rate_roll);
 				input_roll = PIDReturn[0];
 				prev_error_rate_roll = PIDReturn[1];
 				prev_iterm_rate_roll = PIDReturn[2];
 
-				pid_equation(error_rate_pitch, p_rate_pitch_s, i_rate_pitch_s,
-						d_rate_pitch_s, prev_error_rate_pitch, prev_iterm_rate_pitch);
+				pid_equation(error_rate_pitch, p_rate_pitch, i_rate_pitch,
+						d_rate_pitch, prev_error_rate_pitch, prev_iterm_rate_pitch);
 				input_pitch = PIDReturn[0];
 				prev_error_rate_pitch = PIDReturn[1];
 				prev_iterm_rate_pitch = PIDReturn[2];
 
-				pid_equation(error_rate_yaw, p_rate_yaw_s, i_rate_yaw_s, d_rate_yaw_s,
+				pid_equation(error_rate_yaw, p_rate_yaw, i_rate_yaw, d_rate_yaw,
 						prev_error_rate_yaw, prev_iterm_rate_yaw);
 				input_yaw = PIDReturn[0];
 				prev_error_rate_yaw = PIDReturn[1];
@@ -1824,7 +1834,10 @@ void telemetry_task(void *argument)
 
 		if (arm_flag == 1 && disarm_flag == 0) {
 
-			alt_ext = bmp280_get_altitude();
+
+			//alt_ext = bmp280_get_altitude();
+			/*printf("P pitch: %f",p_rate_pitch_s);
+			printf("P roll: %f",p_rate_roll_s);*/
 			send_heartbeat_armed();
 			send_attitude();
 			send_battery_info();
@@ -1853,6 +1866,7 @@ void telemetry_task(void *argument)
 			send_attitude();
 			send_scaled_pressure();
 
+			printf("Telemetry is alive!\n");
 			send_battery_info();
 			send_status_text(MAV_SEVERITY_INFO, "DISARMED!");
 
@@ -1895,8 +1909,8 @@ void fw_mode(void *argument)
 			error_angle_roll = desired_angle_roll - kalman_roll;
 			error_angle_pitch = desired_angle_pitch - kalman_pitch;
 
-			desired_rate_roll = p_angle_roll_s * error_angle_roll;
-			desired_rate_pitch = p_angle_pitch_s * error_angle_pitch;
+			desired_rate_roll = p_angle_roll * error_angle_roll;
+			desired_rate_pitch = p_angle_pitch * error_angle_pitch;
 
 			static float rate_saturation_limit = 200.0f;
 
@@ -1927,14 +1941,14 @@ void fw_mode(void *argument)
 			error_rate_roll = desired_rate_roll - Gx;
 			error_rate_pitch = desired_rate_pitch - Gy;
 
-			pid_equation(error_rate_roll, p_rate_roll_s, i_rate_roll_s, d_rate_roll_s,
+			pid_equation(error_rate_roll, p_rate_roll, i_rate_roll, d_rate_roll,
 					prev_error_rate_roll, prev_iterm_rate_roll);
 
 			input_roll = PIDReturn[0];
 			prev_error_rate_roll = PIDReturn[1];
 			prev_iterm_rate_roll = PIDReturn[2];
 
-			pid_equation(error_rate_pitch, p_rate_pitch_s, i_rate_pitch_s, d_rate_pitch_s,
+			pid_equation(error_rate_pitch, p_rate_pitch, i_rate_pitch, d_rate_pitch,
 					prev_error_rate_pitch, prev_iterm_rate_pitch);
 
 			input_pitch = PIDReturn[0];
