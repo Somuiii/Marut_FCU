@@ -1,4 +1,4 @@
-# Security Policy
+# Safety Policy
 
 Marut FCU is embedded flight-control firmware. Defects in this code can translate directly into unsafe vehicle behavior.
 
@@ -11,16 +11,6 @@ Security-relevant and safety-relevant defects include:
 - memory corruption in telemetry or parser code
 - timer, interrupt, or clock defects that degrade control-loop timing
 - any issue that could compromise safe operation of a vehicle running this firmware
-
-## Supported Targets
-
-The actively maintained target set currently includes:
-
-- `firmware/core`
-- `firmware/nf446re`
-- `firmware/nucleo`
-- `firmware/modes/rate`
-- `firmware/modes/stabilize`
 
 ## Reporting
 
