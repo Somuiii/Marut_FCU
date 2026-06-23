@@ -17,32 +17,6 @@ Marut FCU is a student-built open-source flight control unit developed with the 
 - **Open hardware domains:** PCB assets and composite-domain scaffolding are versioned in the same repository so avionics, board, and vehicle contributors can work from the same project root.
 - **Tracked release artifacts:** `Debug/` outputs, including `.elf` and related build files, are intentionally kept in version control as part of the repository workflow.
 
----
-
-## Repository Layout
-
-```text
-.
-|-- firmware/
-|   |-- core/
-|   |-- nucleo/
-|   |-- nf446re/
-|   |-- modes/
-|   |   |-- rate/
-|   |   `-- stabilize/
-|   `-- debug/
-|-- pcb/
-|   |-- marut_ground_fill/
-|   |-- schematics/
-|   |-- gerbers/
-|   `-- bom/
-|-- composite/
-|   |-- cad/
-|   |-- layup_specs/
-|   `-- simulations/
-|-- docs/
-|-- misc/
-`-- .metadata/
 ```
 
 | Path | Purpose |
@@ -56,46 +30,6 @@ Marut FCU is a student-built open-source flight control unit developed with the 
 
 ---
 
-## Firmware Architecture
-
-### Hardware Stack
-
-| Layer | Component | Role |
-|---|---|---|
-| HAL | STM32 HAL | Peripheral access |
-| RTOS | FreeRTOS (CMSIS-RTOS v2) | Task scheduling |
-| IMU | MPU6050 | Accel/gyro + Kalman estimation |
-| Barometer | BMP280 | Altitude |
-| Magnetometer | QMC5883 | Heading |
-| GPS | NMEA parser | Fix, position |
-| Telemetry | MAVLink | GCS link |
-| RC Input | PPM via timer capture | Pilot control input |
-| Motor/Servo | PWM via timer channels | Actuation |
-
-### Firmware Targets
-
-#### `firmware/core`
-
-- **Directory:** [`firmware/core/`](firmware/core/)
-- **MCU:** `STM32F411C(C-E)Ux`
-- **Active peripherals from `.ioc`:** `ADC1`, `I2C1` in standard mode, `USART1`, `USART2`, `USART6`, `TIM2`, `TIM3`, `TIM4`, `TIM9`, `TIM10`
-- **RTOS tasks defined in the target:**
-
-  | Task | Role |
-  |---|---|
-  | `ArmDisarm` | arm/disarm state management |
-  | `ModeHandler` | flight-mode switching and task handoff |
-  | `Debounce_Handle` | mode-input debouncing |
-  | `QuadTask` | quadcopter control loop |
-  | `TelemetryTask` | MAVLink telemetry emission |
-  | `FixedWingTask` | fixed-wing control path compiled into source |
-  | `VtolMode` | VTOL control path compiled into source |
-
-- **Status:** Active
-
-This is the primary integrated FCU target and the closest thing to the canonical custom-board firmware in the repository. It carries the broadest STM32F411 integration surface, including sensor drivers, RC capture, PWM output, and MAVLink telemetry. The fixed-wing and VTOL handlers exist in the source and can be spawned by mode logic, but they are not created at startup by default and should not be treated as validated production paths.
----
-
 ## Getting Started
 
 1. Read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
@@ -106,7 +40,6 @@ This is the primary integrated FCU target and the closest thing to the canonical
 6. Review [`docs/CODING_STANDARDS.md`](docs/CODING_STANDARDS.md) and [`docs/TESTING.md`](docs/TESTING.md) before opening a pull request.
 
 ---
-
 ## Hardware
 
 The board for `firmware/core` is the custom Marut FCU flight controller based on the `STM32F411CEUx` in the `UFQFPN48` package. The `firmware/nucleo` target uses the `NUCLEO-F446RE` as the primary bring-up and benchtop development platform. PCB assets live under [`pcb/`](pcb/), with the currently populated board workspace centered on [`pcb/marut_ground_fill/`](pcb/marut_ground_fill/); the fabrication-oriented folders [`pcb/schematics/`](pcb/schematics/), [`pcb/gerbers/`](pcb/gerbers/), and [`pcb/bom/`](pcb/bom/) are present and ready to receive design exports. The flight-computer BOM belongs in [`pcb/bom/`](pcb/bom/). Composite and structural assets are scaffolded under [`composite/`](composite/), specifically in [`composite/cad/`](composite/cad/), [`composite/layup_specs/`](composite/layup_specs/), and [`composite/simulations/`](composite/simulations/), but those domains are still at an early repository stage.
@@ -125,35 +58,6 @@ Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before changing any firmware, hardware
 
 ---
 
-## Documentation Index
-
-| Document | Contents |
-|---|---|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System-level design overview |
-| [`docs/DEVELOPMENT_SETUP.md`](docs/DEVELOPMENT_SETUP.md) | Toolchain, build, and flash instructions |
-| [`docs/CODING_STANDARDS.md`](docs/CODING_STANDARDS.md) | Naming, formatting, and embedded workflow conventions |
-| [`docs/TESTING.md`](docs/TESTING.md) | Bench test requirements and PR evidence expectations |
-| [`docs/TELEMETRY.md`](docs/TELEMETRY.md) | MAVLink message set, units, timing notes, and target differences |
-| [`docs/RELEASE_PROCESS.md`](docs/RELEASE_PROCESS.md) | Versioning, branch model, and release tagging |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Change hygiene, PR expectations, and commit format |
-| [`CHANGELOG.md`](CHANGELOG.md) | Version history and current release state |
-| [`SECURITY.md`](SECURITY.md) | Vulnerability reporting policy |
-| [`SUPPORT.md`](SUPPORT.md) | Support channels and bug-report expectations |
-| [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | Contributor behavior and enforcement expectations |
-| [`docs/firmware/DOCUMENTATION.md`](docs/firmware/DOCUMENTATION.md) | Firmware-domain documentation placeholder |
-| [`docs/firmware/PROGRESS.md`](docs/firmware/PROGRESS.md) | Firmware-domain progress placeholder |
-| [`docs/firmware/TASKS.md`](docs/firmware/TASKS.md) | Firmware-domain task placeholder |
-| [`docs/pcb/DOCUMENTATION.md`](docs/pcb/DOCUMENTATION.md) | PCB-domain documentation placeholder |
-| [`docs/pcb/PROGRESS.md`](docs/pcb/PROGRESS.md) | PCB-domain progress placeholder |
-| [`docs/pcb/TASKS.md`](docs/pcb/TASKS.md) | PCB-domain task placeholder |
-| [`docs/composite/DOCUMENTATION.md`](docs/composite/DOCUMENTATION.md) | Composite-domain documentation placeholder |
-| [`docs/composite/PROGRESS.md`](docs/composite/PROGRESS.md) | Composite-domain progress placeholder |
-| [`docs/composite/TASKS.md`](docs/composite/TASKS.md) | Composite-domain task placeholder |
-| [`docs/frontend/DOCUMENTATION.md`](docs/frontend/DOCUMENTATION.md) | Frontend-domain documentation placeholder |
-| [`docs/frontend/PROGRESS.md`](docs/frontend/PROGRESS.md) | Frontend-domain progress placeholder |
-| [`docs/frontend/TASKS.md`](docs/frontend/TASKS.md) | Frontend-domain task placeholder |
-
----
 
 ## License
 
