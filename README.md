@@ -17,17 +17,6 @@ Marut FCU is a student-built open-source flight control unit developed with the 
 - **Open hardware domains:** PCB assets and composite-domain scaffolding are versioned in the same repository so avionics, board, and vehicle contributors can work from the same project root.
 - **Tracked release artifacts:** `Debug/` outputs, including `.elf` and related build files, are intentionally kept in version control as part of the repository workflow.
 
-
-
-| Path | Purpose |
-|---|---|
-| `firmware/` | Embedded firmware targets, board variants, and isolated mode-validation projects |
-| `pcb/` | PCB project assets, board workspace files, and fabrication-oriented folders |
-| `composite/` | Structural, CAD, layup, and simulation domain scaffolding |
-| `docs/` | Architecture, setup, testing, telemetry, release, and domain documentation |
-| `misc/` | Holding area for files that do not yet belong to a stable domain |
-| `.metadata/` | STM32CubeIDE workspace metadata intentionally preserved in-repo |
-
 ---
 
 ## Getting Started
