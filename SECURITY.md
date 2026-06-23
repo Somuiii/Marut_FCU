@@ -1,6 +1,6 @@
 # Safety Policy
 
-Marut FCU is embedded flight-control firmware. Defects in this code can translate directly into unsafe vehicle behavior.
+Defects in code can translate directly into unsafe vehicle behavior.
 
 ## Scope
 
